@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}JurisAI{% endblock title %}
+
+{% block body %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<style>
+  body {
+    background-color: #222;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    padding-bottom: 20px;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+  }
+  .chat-container {
+    background-color: #333;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow-y: auto;
+    height: calc(100vh - 160px); /* Adjust height to utilize the entire screen */
+  }
+  .user-message,
+  .bot-message {
+    padding: 10px;
+    border-radius: 10px;
+    max-width: 70%;
+    margin-bottom: 10px;
+    word-wrap: break-word;
+  }
+  .user-message {
+    background-color: #007bff;
+    color: #fff;
+    float: right;
+    clear: both;
+  }
+  .bot-message {
+    background-color: #6c757d;
+    color: #fff;
+    clear: both;
+  }
+  .chat-input input[type="file"] {
+    display: none;
+  }
+  .chat-input label {
+    display: flex;
+    align-items: center;
+    background-color: #444;
+    color: #fff;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 10px;
+    text-align: center;
+    width: 100%;
+  }
+  .chat-input label:hover {
+    background-color: #007bff;
+  }
+  .chat-input button {
+    border: none;
+    background-color: #007bff;
+    color: #fff;
+    border-radius: 10px;
+    cursor: pointer;
+    padding: 10px 20px;
+    width: 100%;
+    margin-top: 0; /* Remove top margin */
+    height: 50px; /* Set height to align with the input label */
+  }
+  .message-wrapper {
+    margin-bottom: 10px;
+    overflow: hidden;
+    clear: both;
+  }
+  .message-wrapper .message img {
+    float: left;
+    margin-right: 10px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+</style>
+
+<div class="container mt-4">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+      <div class="chat-container" id="chatBox">
+        <div class="bot-message">
+          <img src="/static/bot.png" height="30" width="30" alt="Bot Icon"> Simplify Your Legal Documents with Our AI-powered Summarization
+        </div>
+      </div>
+      <div class="chat-input">
+        <form id="documentForm" method="post" action="/api/service/chat_handler/" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="row no-gutters">
+            <div class="col-9 pr-1">
+              <label for="documentInput" class="w-100 h-100">
+                <img src="/static/document.png" height="30" width="30" alt="Upload Icon"> &nbsp; Click to Upload Document
+                <input type="file" id="documentInput" name="document" accept=".pdf">
+              </label>
+            </div>
+            <div class="col-3 pl-1">
+              <button type="submit" class="btn btn-primary btn-block h-100">Send</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+  $(document).ready(function() {
+    $('#documentForm').submit(function(e) {
+      e.preventDefault();
+      var formData = new FormData($(this)[0]);
+      var fileName = $('#documentInput')[0].files[0].name;
+      $('#chatBox').empty();
+      // Display user message with document preview
+      var userMessage = '<div class="message-wrapper"><div class="user-message"><img src="/static/user.png" height="30" width="30" alt="User Icon"> Uploaded Document: ' + fileName + '</div></div>';
+      $('#chatBox').append(userMessage);
+
+      // Simulate AI processing (replace with actual AJAX call)
+      setTimeout(function() {
+        $.ajax({
+          url: $('#documentForm').attr('action'),
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(response) {
+            var summary = response.summary;
+            var words = summary.split(' ');
+            var index = 0;
+            var botMessageWrapper = '<div class="message-wrapper"><div class="bot-message">';
+            $('#chatBox').append(botMessageWrapper + '</div></div>');
+            var interval = setInterval(function() {
+              if (index < words.length) {
+                $('.bot-message:last').append(words[index] + ' ');
+                index++;
+              } else {
+                clearInterval(interval);
+              }
+            }, 150); // Adjust the interval time as needed
+          },
+          error: function(xhr, status, error) {
+            console.error('Error:', error);
+          }
+        });
+      }, 1000); // Simulate processing delay
+    });
+  });
+</script>
+{% endblock body %}

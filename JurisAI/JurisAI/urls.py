@@ -24,5 +24,6 @@ admin.site.index_title = "Welcome to JurisAI Admin Portal"
 
 urlpatterns = [
     path("",include("Home.urls")),
+    path("api/service/",include("Service.urls")),
     path("admin/", admin.site.urls),
 ]
